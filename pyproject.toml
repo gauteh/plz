@@ -1,0 +1,12 @@
+[project]
+name = "plz"
+version = "0.1.0"
+description = "The utils"
+authors = [ { name = "Gaute Hope", email = "eg@gaute.vetsj.com" } ]
+dependencies = [ ]
+
+[project.urls]
+repository = "http://github.com/gauteh/plz"
+
+# [project.scripts]
+# "sfydata" = "sfy.cli.sfydata:sfy"
