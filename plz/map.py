@@ -4,6 +4,13 @@ class NorgeIBilder(img_tiles.GoogleWTS):
     """
     Norge i bilder, ortofoto.
 
+    Usage:
+
+    >>> fig = plt.figure()
+    >>> img = NIB(cache=True)
+    >>> ax = fig.add_subplot(1,1,1, projection=img.crs)
+    >>> ax.add_image(img, 12)
+
     Credits:
 
         Norge i bilder inneholder lisensierte data. Løsningen omfatter ortofoto
