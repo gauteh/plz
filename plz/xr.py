@@ -50,4 +50,7 @@ def reset_time(ds: xr.Dataset, dim: str = 'time', ref: pd.Timestamp = None, pres
 
     ds = ds.assign_coords({ dim : t })
 
+    if not preserve_units:
+        ds[dim].attrs['unit'] = 's'
+
     return ds
