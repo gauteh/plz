@@ -1,4 +1,5 @@
 import xarray as xr
+import pandas as pd
 import logging
 from datetime import timedelta
 
@@ -26,3 +27,27 @@ def open_mfdataset_overlap(url_base, time_series, timedim='time'):
                    compat='override', combine_attrs='override', join='override', coords='all')
     return ds
 
+
+def reset_time(ds: xr.Dataset, dim: str = 'time', ref: pd.Timestamp = None, preserve_units = False):
+    """
+    Reset time to relative time in seconds since start (without units).
+
+    Args:
+
+        ref: Reference time, if None use first value in `dim`.
+
+        dim: Time dimension to reset.
+    """
+    ds = ds.copy()
+
+    if ref is None:
+        ref = ds[dim].values[0]
+
+    t = ds[dim].values - ref
+
+    if not preserve_units:
+        t = t / pd.to_timedelta(1., 'ns') / 1.e9
+
+    ds = ds.assign_coords({ dim : t })
+
+    return ds
