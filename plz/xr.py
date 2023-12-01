@@ -28,7 +28,7 @@ def open_mfdataset_overlap(url_base, time_series, timedim='time'):
     return ds
 
 
-def reset_time(ds: xr.Dataset, dim: str = 'time', ref: pd.Timestamp = None, preserve_units = False):
+def reset_time(ds: xr.Dataset, dim: str = 'time', unit = 's', ref: pd.Timestamp = None, preserve_units = False):
     """
     Reset time to relative time in seconds since start (without units).
 
@@ -46,7 +46,7 @@ def reset_time(ds: xr.Dataset, dim: str = 'time', ref: pd.Timestamp = None, pres
     t = ds[dim].values - ref
 
     if not preserve_units:
-        t = t / pd.to_timedelta(1., 'ns') / 1.e9
+        t = t / pd.to_timedelta(1., unit)
 
     ds = ds.assign_coords({ dim : t })
 
