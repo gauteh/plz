@@ -54,3 +54,13 @@ def reset_time(ds: xr.Dataset, dim: str = 'time', unit = 's', ref: pd.Timestamp 
         ds[dim].attrs['unit'] = 's'
 
     return ds
+
+def nc_cmp(ds: xr.Dataset):
+    """
+    Encoding to compress NetCDF file.
+    """
+    encoding = {}
+    for v in ds.variables:
+        encoding[v] = {'zlib': True}
+
+    return encoding
