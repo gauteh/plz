@@ -80,11 +80,19 @@ def nc_cmp(ds: xr.Dataset):
     return encoding
 
 
-def closest_point(ds, x, y):
+def closest_point(ds, y, x, dist='geo', threshold=None):
     """
     Find the index of the closest points in `ds` of `x` and `y`, when `x` and
     `y` are not dimensions but variables mapped on the coordinate variables.
     E.g. `lat` and `lon` 2D variables on `X` and `Y` 1D projection variables.
+
+    Args:
+
+        x, y: coordinates, lon, lat if geo
+
+        dist: distance norm to use: 'l2' or 'geo'
+
+        threshold: None, if set the max distance before raising an error.
 
     e.g.:
 
@@ -98,15 +106,42 @@ def closest_point(ds, x, y):
     >>> print(ds)
     """
 
-    dist_x = ds[x.dims[0]].values - x.values
-    dist_y = ds[y.dims[0]].values - y.values
-    dist = dist_x**2 + dist_y**2 # n2 norm
+    if dist == 'l2':
+        dist_x = ds[x.dims[0]].values - x.values
+        dist_y = ds[y.dims[0]].values - y.values
+        dist = dist_x**2 + dist_y**2 # l2 norm
 
-    xi, yi = np.unravel_index(np.argmin(dist), dist.shape)
+    elif dist == 'geo':
+        from pyproj import Geod
+        g = Geod(ellps='WGS84')
+        lon1 = ds[x.dims[0]].values
+        lat1 = ds[y.dims[0]].values
+        assert len(x) == 1 and len(y) == 1, "geo dist only supports length 1 x and y"
+        assert lon1.shape == lat1.shape
+        xx = x.values * np.ones(lon1.shape)
+        yy = y.values * np.ones(lon1.shape)
+        _az12, _az21, dist = g.inv(yy, xx, lat1, lon1)
+
+    else:
+        raise ValueError("unknown distance norm");
+
+    xi, yi = np.unravel_index(np.argmin(dist), ds[x.dims[0]].shape)
+    dist.shape = ds[x.dims[0]].shape
+
+    maxdist = dist[xi, yi]
+    logger.info(f'closest_point: max distance is {maxdist}.')
+
+    if threshold is not None:
+        if maxdist > threshold:
+            logger.error(f'distance exceeds threshold: {maxdist} > {threshold}')
+            logger.debug(f'{x=}, {y=}')
+            logger.debug(f'{ds=}')
+
+            raise ValueError('distance exceeds threshold')
 
     assert ds[x.dims[0]].dims == ds[y.dims[0]].dims
 
     xdim = ds[x.dims[0]].dims[0]
     ydim = ds[x.dims[0]].dims[1]
 
-    return ds.isel({ xdim : xi, ydim : yi })
+    return ds.isel({ xdim : xi, ydim : yi }).assign(closest_point_distance=dist[xi, yi])
