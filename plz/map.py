@@ -1,5 +1,6 @@
 from cartopy.io import img_tiles
 
+
 class NorgeIBilder(img_tiles.GoogleWTS):
     """
     Norge i bilder, ortofoto.
@@ -33,6 +34,7 @@ class NorgeIBilder(img_tiles.GoogleWTS):
 
     Based on URL found on JOSM (open street map).
     """
+
     def __init__(self, cache=False):
         super().__init__(cache=cache)
 
@@ -42,4 +44,38 @@ class NorgeIBilder(img_tiles.GoogleWTS):
             f'https://waapi.webatlas.no/maptiles/tiles/webatlas-orto-newup/wa_grid/{z}/{x}/{y}.jpeg?api_key=b8e36d51-119a-423b-b156-d744d54123d5'
         )
 
+
 NIB = NorgeIBilder
+
+
+def figure_nib(level=None, cache=False, *args, **kwargs):
+    import matplotlib.pyplot as plt
+    fig = plt.figure(*args, **kwargs)
+    ax = addsubplot_nib(fig, level, cache, 1, 1, 1)
+    return fig, ax
+
+
+def addsubplot_nib(fig=None,
+                   level=None,
+                   cache=False,
+                   nrows=1,
+                   ncols=1,
+                   index=1,
+                   *args,
+                   **kwargs):
+    import matplotlib.pyplot as plt
+    import cartopy.crs as ccrs
+
+    if fig is None:
+        fig = plt.gcf()
+
+    img = NIB(cache)
+    ax = fig.add_subplot(nrows, ncols, index, projection=img.crs, *args, **kwargs)
+    ax.add_image(img, level)
+
+    gcrs = ccrs.PlateCarree()
+
+    gl = ax.gridlines(gcrs, draw_labels=True)
+    gl.top_labels = None
+
+    return ax
