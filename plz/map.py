@@ -1,4 +1,6 @@
+import matplotlib.pyplot as plt
 from cartopy.io import img_tiles
+from cartopy import crs
 
 
 class NorgeIBilder(img_tiles.GoogleWTS):
@@ -49,7 +51,6 @@ NIB = NorgeIBilder
 
 
 def figure_nib(level=None, cache=False, *args, **kwargs):
-    import matplotlib.pyplot as plt
     fig = plt.figure(*args, **kwargs)
     ax = addsubplot_nib(fig, level, cache, 1, 1, 1)
     return fig, ax
@@ -79,3 +80,12 @@ def addsubplot_nib(fig=None,
     gl.top_labels = None
 
     return ax
+
+def figure_seachart(layer='sjokartraster', *args, **kwargs):
+    """
+    From kystverket, actually Kartverket.
+    """
+    fig = plt.figure(*args, **kwargs)
+    ax = fig.add_subplot(1,1,1, projection=crs.epsg(3857))
+    return ax.add_wmts("https://cache.kartverket.no/v1/wmts", layer)
+
