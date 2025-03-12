@@ -112,7 +112,6 @@ def closest_point(ds, y, x, dist='geo', threshold=None, dimx='X', dimy='Y'):
         dist_x = ds[dimx] - x
         dist_y = ds[dimy] - y
         dist = np.sqrt(dist_x**2 + dist_y**2) # l2 norm
-        print(dist)
 
     elif dist == 'geo':
         from pyproj import Geod
