@@ -80,7 +80,7 @@ def nc_cmp(ds: xr.Dataset):
     return encoding
 
 
-def closest_point(ds, y, x, dist='geo', threshold=None):
+def closest_point(ds, y, x, dist='geo', threshold=None, dimx='X', dimy='Y'):
     """
     Find the index of the closest points in `ds` of `x` and `y`, when `x` and
     `y` are not dimensions but variables mapped on the coordinate variables.
@@ -93,6 +93,8 @@ def closest_point(ds, y, x, dist='geo', threshold=None):
         dist: distance norm to use: 'l2' or 'geo'
 
         threshold: None, if set the max distance before raising an error.
+
+        dimx, dimy: dimensions in ds to select on.
 
     e.g.:
 
@@ -107,9 +109,10 @@ def closest_point(ds, y, x, dist='geo', threshold=None):
     """
 
     if dist == 'l2':
-        dist_x = ds[x.dims[0]].values - x.values
-        dist_y = ds[y.dims[0]].values - y.values
+        dist_x = ds[dimx] - x
+        dist_y = ds[dimy] - y
         dist = np.sqrt(dist_x**2 + dist_y**2) # l2 norm
+        print(dist)
 
     elif dist == 'geo':
         from pyproj import Geod
@@ -125,23 +128,18 @@ def closest_point(ds, y, x, dist='geo', threshold=None):
     else:
         raise ValueError("unknown distance norm");
 
-    xi, yi = np.unravel_index(np.argmin(dist), ds[x.dims[0]].shape)
-    dist.shape = ds[x.dims[0]].shape
+    distmin = dist.argmin(dim=(dimx, dimy))
 
-    maxdist = dist[xi, yi]
+    maxdist = dist.isel(**distmin)
     logger.info(f'closest_point: max distance is {maxdist}.')
 
     if threshold is not None:
-        if maxdist > threshold:
+        maxdist[maxdist>threshold] = np.nan
+        if np.any(np.isnan(maxdist)):
             logger.error(f'distance exceeds threshold: {maxdist} > {threshold}')
             logger.debug(f'{x=}, {y=}')
             logger.debug(f'{ds=}')
 
             raise ValueError('distance exceeds threshold')
 
-    assert ds[x.dims[0]].dims == ds[y.dims[0]].dims
-
-    xdim = ds[x.dims[0]].dims[0]
-    ydim = ds[x.dims[0]].dims[1]
-
-    return ds.isel({ xdim : xi, ydim : yi }).assign(closest_point_distance=dist[xi, yi])
+    return ds.isel(**distmin).assign(closest_point_distance=dist.isel(**distmin), closest_xi=distmin[dimx], closest_yi=distmin[dimy])
