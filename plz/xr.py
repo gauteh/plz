@@ -72,6 +72,10 @@ def reset_time(ds: xr.Dataset,
 def nc_cmp(ds: xr.Dataset):
     """
     Encoding to compress NetCDF file.
+
+    Usage:
+
+    >>> ds.to_netcdf(file, encoding=plz.xr.nc_cmp(ds))
     """
     encoding = {}
     for v in ds.variables:
@@ -130,15 +134,14 @@ def closest_point(ds, y, x, dist='geo', threshold=None, dimx='X', dimy='Y'):
     distmin = dist.argmin(dim=(dimx, dimy))
 
     maxdist = dist.isel(**distmin)
-    logger.info(f'closest_point: max distance is {maxdist}.')
+    logger.debug(f'closest_point: max distance is {maxdist}, max: {np.max(maxdist.values.ravel())}')
 
     if threshold is not None:
-        maxdist[maxdist>threshold] = np.nan
-        if np.any(np.isnan(maxdist)):
+        if np.any(maxdist>threshold):
             logger.error(f'distance exceeds threshold: {maxdist} > {threshold}')
             logger.debug(f'{x=}, {y=}')
             logger.debug(f'{ds=}')
 
-            raise ValueError('distance exceeds threshold')
+            raise ValueError(f'distance exceeds threshold: {maxdist} > {threshold}')
 
     return ds.isel(**distmin).assign(closest_point_distance=dist.isel(**distmin), closest_xi=distmin[dimx], closest_yi=distmin[dimy])
