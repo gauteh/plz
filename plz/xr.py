@@ -115,33 +115,40 @@ def closest_point(ds, y, x, dist='geo', threshold=None, dimx='X', dimy='Y'):
     if dist == 'l2':
         dist_x = ds[dimx] - x
         dist_y = ds[dimy] - y
-        dist = np.sqrt(dist_x**2 + dist_y**2) # l2 norm
+        dist = np.sqrt(dist_x**2 + dist_y**2)  # l2 norm
 
     elif dist == 'geo':
         from pyproj import Geod
         g = Geod(ellps='WGS84')
         lon1 = ds[x.dims[0]].values
         lat1 = ds[y.dims[0]].values
-        assert len(x) == 1 and len(y) == 1, "geo dist only supports length 1 x and y"
+        assert len(x) == 1 and len(
+            y) == 1, "geo dist only supports length 1 x and y"
         assert lon1.shape == lat1.shape
         xx = x.values * np.ones(lon1.shape)
         yy = y.values * np.ones(lon1.shape)
         _az12, _az21, dist = g.inv(yy, xx, lat1, lon1)
 
     else:
-        raise ValueError("unknown distance norm");
+        raise ValueError("unknown distance norm")
 
     distmin = dist.argmin(dim=(dimx, dimy))
 
-    maxdist = dist.isel(**distmin)
-    logger.debug(f'closest_point: max distance is {maxdist}, max: {np.max(maxdist.values.ravel())}')
+    maxdist = dist.isel(distmin)
+    logger.debug(
+        f'closest_point: max distance is {maxdist}, max: {np.max(maxdist.values.ravel())}'
+    )
 
     if threshold is not None:
-        if np.any(maxdist>threshold):
-            logger.error(f'distance exceeds threshold: {maxdist} > {threshold}')
+        if np.any(maxdist > threshold):
+            logger.error(
+                f'distance exceeds threshold: {maxdist} > {threshold}')
             logger.debug(f'{x=}, {y=}')
             logger.debug(f'{ds=}')
 
-            raise ValueError(f'distance exceeds threshold: {maxdist} > {threshold}')
+            raise ValueError(
+                f'distance exceeds threshold: {maxdist} > {threshold}')
 
-    return ds.isel(**distmin).assign(closest_point_distance=dist.isel(**distmin), closest_xi=distmin[dimx], closest_yi=distmin[dimy])
+    return ds.isel(**distmin).assign(closest_point_distance=maxdist,
+                                     closest_xi=distmin[dimx],
+                                     closest_yi=distmin[dimy])
