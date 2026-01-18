@@ -9,8 +9,9 @@ logger = logging.getLogger(__name__)
 
 def open_mfdataset_overlap(url_base, time_series, timedim='time'):
     """
-    Aggregate many files with some overlap together. The overlap is often in the time-dimension where
-    files have produced by a model started at shorter time intervals than the simulation span.
+    Aggregate many files together. The files may be overlapping, the overlap is often in the time-dimension where
+    files have been produced by a model started at shorter time intervals than
+    the simulation span.
 
     Example:
 

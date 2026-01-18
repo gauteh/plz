@@ -71,7 +71,12 @@ def addsubplot_nib(fig=None,
         fig = plt.gcf()
 
     img = NIB(cache)
-    ax = fig.add_subplot(nrows, ncols, index, projection=img.crs, *args, **kwargs)
+    ax = fig.add_subplot(nrows,
+                         ncols,
+                         index,
+                         projection=img.crs,
+                         *args,
+                         **kwargs)
     ax.add_image(img, level)
 
     gcrs = ccrs.PlateCarree()
@@ -82,11 +87,11 @@ def addsubplot_nib(fig=None,
 
     return ax
 
+
 def figure_seachart(layer='sjokartraster', *args, **kwargs):
     """
-    From kystverket, actually Kartverket.
+    From Kystverket, or actually; Kartverket.
     """
     fig = plt.figure(*args, **kwargs)
-    ax = fig.add_subplot(1,1,1, projection=crs.epsg(3857))
+    ax = fig.add_subplot(1, 1, 1, projection=crs.epsg(3857))
     return ax.add_wmts("https://cache.kartverket.no/v1/wmts", layer)
-
