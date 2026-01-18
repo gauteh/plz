@@ -78,6 +78,7 @@ def addsubplot_nib(fig=None,
 
     gl = ax.gridlines(gcrs, draw_labels=True)
     gl.top_labels = None
+    gl.right_labels = None
 
     return ax
 
