@@ -2,6 +2,7 @@ import logging
 
 from . import map
 from . import xr
+from . import acoustic
 from .math import nextpow2
 
 

@@ -35,10 +35,9 @@ def c(thetao, so, depth, lats):
     CT = gsw.CT_from_pt(so, thetao)
     # print(CT.shape, pressure.shape)
 
-    seatemp = gsw.t_from_CT(so, CT, pressure[np.newaxis, :, :, np.newaxis])
+    seatemp = gsw.t_from_CT(so, CT, pressure)
 
     c = 1449.2 + 4.6 * seatemp - 0.055 * seatemp**2 + 0.00029 * seatemp**3 + (
-        1.34 - 0.01 * seatemp) * (
-            so - 35.) + 0.016 * odepth[np.newaxis, :, np.newaxis, np.newaxis]
+        1.34 - 0.01 * seatemp) * (so - 35.) + 0.016 * odepth
 
     return c
