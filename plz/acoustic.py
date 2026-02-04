@@ -41,3 +41,57 @@ def c(thetao, so, depth, lats):
         1.34 - 0.01 * seatemp) * (so - 35.) + 0.016 * odepth
 
     return c
+
+
+def oasesssp(depths, ssp, linear=False):
+    """
+    Generate a list of lines for the environment file to OASES.
+
+    Args:
+
+        depths: depth, positive in meters, increasing.
+
+        ssp: sound speed in m/s
+
+        linear: step-wise or linear output
+
+    Returns:
+
+        list of strings for the env file.
+    """
+
+    di = np.argmax(np.isnan(ssp))
+    depths = depths[:di]
+    ssp = ssp[:di]
+
+    layers = []
+
+    # make OASES env model
+    #
+    # IMPORTANT: need to have 0.0 depth twice!
+    layers.append('0.00  0.0       0    0.0   0.0   0.00   0.0 0.0 0')
+
+    if linear:
+        if depths[0] != 0.0:
+            layers.append("%.2f %.2f -%.2f 0.0 0.0 1.0264 0.0" %
+                          (0.0, ssp[0], ssp[1]))
+
+        for i, d in enumerate(depths[:-1]):
+            # add linearliy increasing layers
+            layers.append("%.2f %.2f -%.2f 0.0 0.0 1.0264 0.0" %
+                          (d, ssp[i], ssp[i + 1]))
+
+        # add last layer
+        layers.append("%.2f %.2f 0.0 0.0 0.0 1.0264 0.0" %
+                      (depths[-1], ssp[-1]))
+
+    else:
+        if depths[0] != 0.0:
+            layers.append('%.2f  %.1f    0.0  0.0   0.0   1.000  0.0 0.0 0' %
+                          (0.0, ssp[0]))  # from surface to first interface
+
+        for i, d in enumerate(depths):
+            layers.append('%.2f  %.1f    0.0  0.0   0.0   1.000  0.0 0.0 0' %
+                          (d, ssp[i]))
+
+    return layers
