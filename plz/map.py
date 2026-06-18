@@ -88,10 +88,22 @@ def addsubplot_nib(fig=None,
     return ax
 
 
+KARTVERKET_WMTS = "https://cache.kartverket.no/v1/wmts/1.0.0/WMTSCapabilities.xml"
+
+# Alternative WMS (supports add_wms instead of add_wmts):
+# https://wms.geonorge.no/skwms1/wms.sjokartraster2
+# Layers: 'all', 'overseiling', 'kyst', etc.
+GEONORGE_WMS_SJOKARTRASTER = "https://wms.geonorge.no/skwms1/wms.sjokartraster2"
+
+
 def figure_seachart(layer='sjokartraster', *args, **kwargs):
     """
-    From Kystverket, or actually; Kartverket.
+    Sea chart from Kartverket via WMTS.
+
+    The WMTS capabilities are fetched from KARTVERKET_WMTS. The `sjokartraster`
+    layer is available there. As an alternative, a WMS service is available at
+    GEONORGE_WMS_SJOKARTRASTER (use add_wms instead of add_wmts).
     """
     fig = plt.figure(*args, **kwargs)
     ax = fig.add_subplot(1, 1, 1, projection=crs.epsg(3857))
-    return ax.add_wmts("https://cache.kartverket.no/v1/wmts", layer)
+    return fig, ax, ax.add_wmts(KARTVERKET_WMTS, layer)
